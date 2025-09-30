@@ -501,16 +501,24 @@
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
+                console.log('Button clicked:', this.getAttribute('href'));
                 const target = document.querySelector(this.getAttribute('href'));
+                console.log('Target found:', target);
                 if (target) {
                     target.scrollIntoView({
                         behavior: 'smooth',
                         block: 'start'
                     });
                     // Close mobile menu if open
-                    navLinks.classList.remove('active');
-                    mobileToggle.querySelector('i').classList.add('fa-bars');
-                    mobileToggle.querySelector('i').classList.remove('fa-times');
+                    if (navLinks) {
+                        navLinks.classList.remove('active');
+                    }
+                    if (mobileToggle && mobileToggle.querySelector('i')) {
+                        mobileToggle.querySelector('i').classList.add('fa-bars');
+                        mobileToggle.querySelector('i').classList.remove('fa-times');
+                    }
+                } else {
+                    console.error('Target not found for:', this.getAttribute('href'));
                 }
             });
         });
