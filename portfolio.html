@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Mohammad Issa">
+    <meta name="robots" content="index, follow">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Mohammad Issa - Professional Portfolio</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -543,15 +549,48 @@
             skillObserver.observe(bar);
         });
 
-        // Contact form handling
+        // Contact form handling with security measures
         document.querySelector('.contact-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Get form data
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData);
+            // Basic XSS protection - sanitize inputs
+            const sanitizeInput = (str) => {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            };
             
-            // Show success message (you can replace this with actual form submission)
+            // Get and sanitize form data
+            const formData = new FormData(this);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = sanitizeInput(value.trim());
+            }
+            
+            // Basic validation
+            if (!data.name || !data.email || !data.message) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(data.email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            
+            // Rate limiting (simple client-side check)
+            const lastSubmission = localStorage.getItem('lastFormSubmission');
+            const now = Date.now();
+            if (lastSubmission && (now - parseInt(lastSubmission)) < 60000) { // 1 minute
+                alert('Please wait before submitting another message.');
+                return;
+            }
+            
+            localStorage.setItem('lastFormSubmission', now.toString());
+            
+            // Show success message (replace with actual secure form submission)
             alert('Thank you for your message! I\'ll get back to you soon.');
             this.reset();
         });
@@ -584,6 +623,38 @@
         // Start typing effect after page loads
         window.addEventListener('load', () => {
             setTimeout(typeWriter, 1000);
+        });
+
+        // Security measures
+        // Disable right-click context menu (basic protection)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable common developer shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S
+            if (e.keyCode === 123 || // F12
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || // Ctrl+Shift+I/J
+                (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83))) { // Ctrl+U/S
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Console warning for potential code thieves
+        console.log('%cSTOP!', 'color: red; font-size: 50px; font-weight: bold;');
+        console.log('%cThis is a browser feature intended for developers. This portfolio belongs to Mohammad Issa.', 'color: red; font-size: 16px;');
+        console.log('%cIf someone told you to copy-paste something here, they are trying to steal information.', 'color: red; font-size: 16px;');
+
+        // Obfuscate email to prevent scraping
+        const emailParts = ['moissa2121', 'gmail', 'com'];
+        const email = emailParts[0] + '@' + emailParts[1] + '.' + emailParts[2];
+        
+        // Replace email displays with obfuscated version on load
+        document.querySelectorAll('a[href="mailto:moissa2121@gmail.com"], .social-link[href="mailto:moissa2121@gmail.com"]').forEach(link => {
+            link.href = 'mailto:' + email;
         });
     </script>
 </body>
